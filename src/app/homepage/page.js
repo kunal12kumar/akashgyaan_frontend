@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import {
   Send, Mic, MicOff, Image, FileText, Settings, Globe, BarChart3, Users, TrendingUp,
   Download, Star, MessageCircle, Satellite, Map, CloudRain, GraduationCap, Shield, Phone,
@@ -28,143 +29,147 @@ const ChatInterface = ({
   handleVoiceToggle,
   handleFileUpload,
   handleQuickAction,
-}) => (
-  <div className="flex flex-col h-full">
-    {/* Chat Header */}
-    <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-          <Bot className="w-6 h-6 text-white" />
-        </div>
-        <div>
-          <h2 className="font-semibold text-gray-800">AkashGyaan</h2>
-          <p className="text-sm text-gray-500 flex items-center">
-            <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-            Online
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center text-black space-x-2">
-        <button
-          onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          {isVoiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-        </button>
-        <select
-          value={selectedLanguage}
-          onChange={(e) => setSelectedLanguage(e.target.value)}
-          className="px-3 py-1 rounded-md border border-gray-300 text-sm"
-        >
-          {languages.map(lang => (
-            <option key={lang.code} value={lang.code}>{lang.name}</option>
-          ))}
-        </select>
-      </div>
-    </div>
+}) => {
+  const quickActions = [
+    { icon: Satellite, label: 'Satellite Data', action: 'satellite' },
+    { icon: Map, label: 'Map Services', action: 'map' },
+    { icon: CloudRain, label: 'Weather Info', action: 'weather' },
+    { icon: GraduationCap, label: 'Learning Mode', action: 'education' },
+  ];
 
-    {/* Quick Actions */}
-    <div className="bg-gray-50 p-4 border-b text-black border-gray-200">
-      <div className="flex space-x-2 overflow-x-auto">
-        {[
-          { icon: Satellite, label: 'Satellite Data', action: 'satellite' },
-          { icon: Map, label: 'Map Services', action: 'map' },
-          { icon: CloudRain, label: 'Weather Info', action: 'weather' },
-          { icon: GraduationCap, label: 'Learning Mode', action: 'education' },
-        ].map((action, index) => (
-          <button
-            key={index}
-            onClick={() => handleQuickAction(action.action)}
-            className="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 whitespace-nowrap"
-          >
-            <action.icon className="w-4 h-4 text-blue-500" />
-            <span className="text-sm font-medium">{action.label}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-
-    {/* Chat Messages */}
-    <div className="flex-1 text-black overflow-y-auto p-4 space-y-4">
-      {chatHistory.map((msg, index) => (
-        <div
-          key={index}
-          className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
-        >
-          <div
-            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-              msg.type === 'user' ? 'bg-blue-500 text-white' : 'bg-white border border-gray-200'
-            }`}
-          >
-            <p className="text-sm">{msg.content}</p>
-            <p className="text-xs opacity-70 mt-1">{msg.timestamp.toLocaleTimeString()}</p>
+  return (
+    <div className="flex flex-col h-full">
+      {/* Chat Header */}
+      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <Bot className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-gray-800">AkashGyaan</h2>
+            <p className="text-sm text-gray-500 flex items-center">
+              <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+              Online
+            </p>
           </div>
         </div>
-      ))}
-      {isTyping && (
-        <div className="flex justify-start">
-          <div className="bg-white border border-gray-200 rounded-lg px-4 py-2">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+        <div className="flex items-center text-black space-x-2">
+          <button
+            onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            {isVoiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+          </button>
+          <select
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            className="px-3 py-1 rounded-md border border-gray-300 text-sm"
+          >
+            {languages.map(lang => (
+              <option key={lang.code} value={lang.code}>{lang.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-gray-50 p-4 border-b text-black border-gray-200">
+        <div className="flex space-x-2 overflow-x-auto">
+          {quickActions.map((action, index) => (
+            <button
+              key={index}
+              onClick={() => handleQuickAction(action.action)}
+              className="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 whitespace-nowrap"
+            >
+              <action.icon className="w-4 h-4 text-blue-500" />
+              <span className="text-sm font-medium">{action.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Chat Messages */}
+      <div className="flex-1 text-black overflow-y-auto p-4 space-y-4">
+        {chatHistory.map((msg, index) => (
+          <div
+            key={index}
+            className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
+          >
+            <div
+              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                msg.type === 'user' ? 'bg-blue-500 text-white' : 'bg-white border border-gray-200'
+              }`}
+            >
+              <p className="text-sm">{msg.content}</p>
+              <p className="text-xs opacity-70 mt-1">{msg.timestamp.toLocaleTimeString()}</p>
             </div>
           </div>
-        </div>
-      )}
-      <div ref={messagesEndRef} />
-    </div>
-
-    {/* Chat Input */}
-    <div className="bg-white text-black border-t border-gray-200 p-4">
-      <div className="flex items-center space-x-2">
-        <div className="flex-1 relative">
-          <input
-            placeholder="Type your query here"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="w-full px-4 py-2 h-10 border-2 border-gray-300 focus:border-blue-500 outline-none rounded-lg"
-          />
-          <div className="absolute right-2 top-2 flex space-x-1">
-            <button
-              onClick={() => handleFileUpload('image')}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-            >
-              <Image className="w-4 h-4 text-gray-500" />
-            </button>
-            <button
-              onClick={() => handleFileUpload('pdf')}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-            >
-              <FileText className="w-4 h-4 text-gray-500" />
-            </button>
+        ))}
+        {isTyping && (
+          <div className="flex justify-start">
+            <div className="bg-white border border-gray-200 rounded-lg px-4 py-2">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              </div>
+            </div>
           </div>
-        </div>
-        <button
-          onClick={handleVoiceToggle}
-          className={`p-2 rounded-lg transition-all duration-200 ${
-            isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 hover:bg-gray-200'
-          }`}
-        >
-          {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-        </button>
-        <button
-          onClick={handleSendMessage}
-          className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          <Send className="w-5 h-5" />
-        </button>
+        )}
+        <div ref={messagesEndRef} />
       </div>
-      <input
-        ref={fileInputRef}
-        type="file"
-        className="hidden"
-        accept="image/*,.pdf"
-        onChange={(e) => console.log('File selected:', e.target.files)}
-      />
+
+      {/* Chat Input */}
+      <div className="bg-white text-black border-t border-gray-200 p-4">
+        <div className="flex items-center space-x-2">
+          <div className="flex-1 relative">
+            <input
+              placeholder="Type your query here"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="w-full px-4 py-2 h-10 border-2 border-gray-300 focus:border-blue-500 outline-none rounded-lg"
+            />
+            <div className="absolute right-2 top-2 flex space-x-1">
+              <button
+                onClick={() => handleFileUpload('image')}
+                className="p-1 hover:bg-gray-100 rounded transition-colors"
+              >
+                <Image className="w-4 h-4 text-gray-500" />
+              </button>
+              <button
+                onClick={() => handleFileUpload('pdf')}
+                className="p-1 hover:bg-gray-100 rounded transition-colors"
+              >
+                <FileText className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+          </div>
+          <button
+            onClick={handleVoiceToggle}
+            className={`p-2 rounded-lg transition-all duration-200 ${
+              isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
+            {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+          </button>
+          <button
+            onClick={handleSendMessage}
+            className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            <Send className="w-5 h-5" />
+          </button>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept="image/*,.pdf"
+          onChange={(e) => handleFileUpload(null, e.target.files[0])}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const AkashGyaanChatbot = () => {
   const [message, setMessage] = useState('');
@@ -184,6 +189,8 @@ const AkashGyaanChatbot = () => {
   const [isOnline, setIsOnline] = useState(true);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   const languages = [
     { code: 'en', name: 'English' },
@@ -224,7 +231,7 @@ const AkashGyaanChatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (message.trim()) {
       const newMessage = {
         type: 'user',
@@ -232,28 +239,132 @@ const AkashGyaanChatbot = () => {
         timestamp: new Date(),
       };
       setChatHistory((prev) => [...prev, newMessage]);
-      setMessage('');
       setIsTyping(true);
 
-      // Simulate bot response
-      setTimeout(() => {
+      try {
+        // Send text message to backend
+        const response = await axios.post('/api/message', {
+          type: 'text',
+          content: message,
+          language: selectedLanguage,
+        });
         const botResponse = {
           type: 'bot',
-          content: 'I understand you\'re looking for information. Let me help you with that. Based on your query, I can provide relevant satellite data and insights.',
+          content: response.data.message || 'I understand you\'re looking for information. Let me help you with that.',
           timestamp: new Date(),
         };
         setChatHistory((prev) => [...prev, botResponse]);
+      } catch (error) {
+        console.error('Error sending message:', error);
+        const errorResponse = {
+          type: 'bot',
+          content: 'Sorry, there was an error processing your message.',
+          timestamp: new Date(),
+        };
+        setChatHistory((prev) => [...prev, errorResponse]);
+      } finally {
+        setMessage('');
         setIsTyping(false);
-      }, 1500);
+      }
     }
   };
 
-  const handleVoiceToggle = () => {
-    setIsRecording(!isRecording);
+  const handleVoiceToggle = async () => {
+    if (!isRecording) {
+      try {
+        // Start recording
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorderRef.current = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+
+        mediaRecorderRef.current.ondataavailable = (event) => {
+          audioChunksRef.current.push(event.data);
+        };
+
+        mediaRecorderRef.current.onstop = async () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const formData = new FormData();
+          formData.append('file', audioBlob, 'recording.webm');
+          formData.append('type', 'voice');
+          formData.append('language', selectedLanguage);
+
+          try {
+            const response = await axios.post('/api/upload', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            const botResponse = {
+              type: 'bot',
+              content: response.data.message || 'Voice message received and processed.',
+              timestamp: new Date(),
+            };
+            setChatHistory((prev) => [...prev, botResponse]);
+          } catch (error) {
+            console.error('Error uploading voice:', error);
+            const errorResponse = {
+              type: 'bot',
+              content: 'Sorry, there was an error processing your voice message.',
+              timestamp: new Date(),
+            };
+            setChatHistory((prev) => [...prev, errorResponse]);
+          }
+        };
+
+        mediaRecorderRef.current.start();
+        setIsRecording(true);
+      } catch (error) {
+        console.error('Error accessing microphone:', error);
+        const errorResponse = {
+          type: 'bot',
+          content: 'Failed to access microphone. Please check permissions.',
+          timestamp: new Date(),
+        };
+        setChatHistory((prev) => [...prev, errorResponse]);
+      }
+    } else {
+      // Stop recording
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      // Stop the microphone stream
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    }
   };
 
-  const handleFileUpload = () => {
-    fileInputRef.current?.click();
+  const handleFileUpload = async (type, file) => {
+    if (!file && type) {
+      fileInputRef.current.click();
+      return;
+    }
+
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type || (file.type.includes('image') ? 'image' : 'pdf'));
+      formData.append('language', selectedLanguage);
+
+      setIsTyping(true);
+      try {
+        const response = await axios.post('/api/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        const botResponse = {
+          type: 'bot',
+          content: response.data.message || `File (${file.name}) uploaded successfully.`,
+          timestamp: new Date(),
+        };
+        setChatHistory((prev) => [...prev, botResponse]);
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        const errorResponse = {
+          type: 'bot',
+          content: 'Sorry, there was an error uploading your file.',
+          timestamp: new Date(),
+        };
+        setChatHistory((prev) => [...prev, errorResponse]);
+      } finally {
+        setIsTyping(false);
+        fileInputRef.current.value = ''; // Clear file input
+      }
+    }
   };
 
   const handleQuickAction = (action) => {
