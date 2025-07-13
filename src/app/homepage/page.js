@@ -11,6 +11,7 @@ import {
 // Define ChatInterface as a separate component
 const ChatInterface = ({
   message,
+  aichatbotresult,
   setMessage,
   isRecording,
   setIsRecording,
@@ -191,6 +192,7 @@ const AkashGyaanChatbot = () => {
   const messagesEndRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const [aichatbotresult ,setaichatbotresult]= useState([])
 
   const languages = [
     { code: 'en', name: 'English' },
@@ -244,10 +246,14 @@ const AkashGyaanChatbot = () => {
       try {
         // Send text message to backend
         const response = await axios.post('/api/message', {
-          type: 'text',
           content: message,
           language: selectedLanguage,
-        });
+        },
+    {
+        headers:{
+            "content-Type":"application/json"
+        }
+    });
         const botResponse = {
           type: 'bot',
           content: response.data.message || 'I understand you\'re looking for information. Let me help you with that.',
@@ -466,6 +472,7 @@ const AkashGyaanChatbot = () => {
               handleVoiceToggle={handleVoiceToggle}
               handleFileUpload={handleFileUpload}
               handleQuickAction={handleQuickAction}
+              aichatbotresult={aichatbotresult}
             />
           )}
           {activeTab === 'dashboard' && <div className="p-6 text-gray-800">Dashboard Coming Soon</div>}
